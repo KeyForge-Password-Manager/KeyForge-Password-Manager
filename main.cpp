@@ -5,10 +5,9 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
-
-
 #include <chrono>
 #include <thread>//	std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+
 
 
 
@@ -479,4 +478,139 @@ int count_str_in_file(string key) {
 	}
 	in.close();
 	return n;
+}
+
+int is_user(string user_key) {
+	cout <<
+		"Если хотите посмотреть пароли, введите " << rr.magenta("1") << "." << endl <<
+		"Если хотите добавить пароль, введите " << rr.cyan("2") << "." << endl <<
+		"Чтобы проверить пароли на надёжность, нажмите " << rr.green("3") << endl<<
+		"Для выхода из приложения введите " << rr.red("0")<<endl;
+	int inp;
+	cin >> inp;
+	system("cls");
+	if (inp == 1) { 
+		read_all_file(user_key); 
+		cout << "для выхода в меню нажмите " << rr.red("0") << endl;
+		int exit1; cin >> exit1; system("cls");
+	}
+	else if (inp == 2) {
+		cout << "Введите название сайта/приложения" << endl;
+		string company = "";
+		getline(cin, company);
+		if (company == "")getline(cin, company);
+		while (company.find(" ") != string::npos)
+			company[company.find(" ")] = '_';
+
+		cout << "введите пароль" << endl;
+		string pass = ""; cin >> pass;
+		pass = encryption(pass, user_key);
+		addf(company, pass);
+		system("cls");
+	}
+	else if (inp == 3) {
+		int worth_pass;
+		long worth_val = 1215752191;
+		int n = count_str_in_file(user_key);
+		vector<string> list(n);
+
+		string line;
+		n = 0;
+		ifstream in("Storage.txt");
+		if (in.is_open()){
+			while (getline(in, line)) {
+				string company = ""; string pass = "";
+				for (int i = 0; i < line.find(" "); i++)company += line[i];
+				for (int i = line.find(" ") + 1; i < line.size(); i++)pass += line[i];
+				list[n] = decryption(pass, user_key); 
+
+				long ans_pass = 0;
+				string s = list[n];
+				vector<char> all = {'a', 'b','c','d','e','f','g','h','i','j','k','l','m','n', 'o', 'p' , 'q', 'r', 's', 't','u', 'v', 'w', 'x', 'y', 'z'};
+				for (int i = 0; i < s.size(); i++) {
+					for (int j = 0; j < 26; j++)
+						if (s[i] == all[j]) ans_pass += (j + 1) * pow(26, i);
+				}
+				//cout << list[n] << " " << ans_pass << endl;
+				if (ans_pass < worth_val) worth_pass = n;
+
+				for(int i=0; i<list[n].size(); i++)list[n][i]= (char)std::tolower(list[n][i]);
+				n++;
+			}
+		}
+		in.close();
+
+
+		for (int i = 0; i < n; i++) {
+			for (int j = i+1; j < n; j++) {
+				if (list[i].find(list[j]) != std::string::npos ) {
+					cout << "Эти пароли похожи, лучше заменить один из них" << endl<<endl;
+					
+					string line2;
+					n = 0;
+					ifstream in2("Storage.txt");
+					if (in2.is_open()) {
+						while (getline(in2, line2)) {
+							string company2 = ""; string pass2 = "";
+							for (int i = 0; i < line2.find(" "); i++)company2 += line2[i];
+							for (int i = line2.find(" ") + 1; i < line2.size(); i++)pass2 += line2[i];
+							pass2 = decryption(pass2, user_key);
+							if (n == i || n==j)cout << company2<<" "<< pass2<< endl;
+							n++;
+						}
+					}
+					in2.close();
+
+					cout << "А так же слабейшим паролем является " << list[worth_pass]<<endl;
+					cout << "чтобы продолжить, нажмите любую цифру" << endl;
+					int qq; cin >> qq;
+					system("cls");
+				}
+			}
+		}
+	}
+	else if (inp == 4) {
+		cout << "введите слово, например FLEX" << endl;
+		string word; cin >> word;
+
+		//string str = "FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  FLEX  ";
+		//str = str + str + str + str + str + str + str + str + str + str;
+		for (int i = 0; i < 9; i++)word =word + "   " + word;
+		vector<string>vect = { "31","32","33","34","35","36","37" };
+		for (int i = 0; i < 100; i++) {
+			cout << "\033[" + vect[i % 7] + "m" + word + "\033[0m";
+			std::this_thread::sleep_for(std::chrono::milliseconds(400));
+			system("cls");
+		}
+	}
+	return inp;
+}
+int main() {
+	setlocale(LC_ALL, "Russian");
+	
+
+	string line;
+	string user = "";
+	ifstream in("Storage.txt");
+	if (in.is_open()){
+		while (getline(in, line)){user += line;}
+	}
+	in.close();
+
+	int stop = 1;
+	string user_key = "";
+	if (!user.empty()) {
+		cout << "введите код для входа в приложение(1 слово без русских букв)" << endl;
+		cin >> user_key;
+		//is_user(user_key);
+	}
+	else {
+		cout << "для создвния аккаутна нужно придумать код(1 слово без русских букв). Далее этот же код понадобится для получения доступа к паролям" << endl;
+		cout << "введите код" << endl;
+		cin >> user_key;
+		//is_user(user_key);
+	}
+	while (stop != 0) {
+		stop=is_user(user_key);
+	}
 }
