@@ -1,13 +1,12 @@
 #include <iostream>
 #include <string>
-#include <cstdlib>
+//#include <cstdlib>
 #include <vector>
 #include <fstream>
 #include <iomanip>
 #include <cmath>
 #include <chrono>
 #include <thread>//	std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-
 
 
 
@@ -374,7 +373,9 @@ string read(string company) {
 	in.close();
 	return ans;
 }
-void addf(string company, string pass) {
+string encryption(string pass, string key);
+string decryption(string pass, string key);
+void addf(string company, string pass, string key) {
 	ofstream out;
 	out.open("Storage.txt", ios::app);
 	if (out.is_open())
@@ -401,14 +402,18 @@ void addf(string company, string pass) {
 						for (int i = 0; i < company.size(); i++) {
 							if (company[i] != line2[i])similar = false;
 						}
+						string comp = "";
+						for (int i = 0; i < line2.find(' '); i++)comp += line2[i];
+						string p = "";
+						for (int i = line2.find(' ') + 1; i < line2.size(); i++)p += line2[i];
 						if (!similar)
-							out2 << line2 << endl;
+							out2 << comp<<" "<<p << endl;
 						else {
-							cout << line2 << endl;
+							cout << comp << " " << decryption(p, key) << endl;
 							cout << "Если хотите оставить этот пароль, нажмите " << rr.blue("1") << endl <<
 								    "Если хотите удалить его, нажмите " << rr.red("2") << endl;
 							int inp; cin >> inp;
-							if (inp == 1)out2 << line2 << endl;
+							if (inp == 1)out2 << comp << " " << p << endl;
 						}
 					}
 				}
@@ -505,7 +510,7 @@ int is_user(string user_key) {
 		cout << "введите пароль" << endl;
 		string pass = ""; cin >> pass;
 		pass = encryption(pass, user_key);
-		addf(company, pass);
+		addf(company, pass, user_key);
 		system("cls");
 	}
 	else if (inp == 3) {
