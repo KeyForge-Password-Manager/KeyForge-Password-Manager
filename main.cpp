@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-//#include <cstdlib>
 #include <vector>
 #include <fstream>
 #include <iomanip>
@@ -8,10 +7,8 @@
 #include <chrono>
 #include <thread>//	std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
-
-
+#include <Windows.h>
 using namespace std;
-
 class Color {
 public:
 	/*Color rr;	cout << rr.magenta("red") << "  " << rr.cyan("blue") <<"  "<<rr.grey("grey")<< endl;*/
@@ -49,6 +46,28 @@ public:
 	}
 };
 Color rr;
+void CopyToClipboard(const std::string& text) {
+	// Открываем буфер обмена
+	if (OpenClipboard(nullptr)) {
+		// Очищаем буфер
+		EmptyClipboard();
+
+		// Выделяем память под текст (включая нулевой символ)
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+		if (hMem != nullptr) {
+			// Копируем текст в выделенную память
+			char* pMem = static_cast<char*>(GlobalLock(hMem));
+			strcpy_s(pMem, text.size() + 1, text.c_str());
+			GlobalUnlock(hMem);
+
+			// Помещаем текст в буфер обмена
+			SetClipboardData(CF_TEXT, hMem);
+		}
+
+		// Закрываем буфер обмена
+		CloseClipboard();
+	}
+}
 
 
 string Vigenere(string pass, string key) {
@@ -337,21 +356,21 @@ string Playfer_obr(string pass, string key) {
 	return ans;
 }
 
-void norm_string(string& pass) {
+/*void norm_string(string& pass) {
 	for (int i = 0; i < pass.size(); i += 2) {
 		if (pass[i] == pass[i + 1]) {
 			pass.insert(i + 1, "X");
 		}
 	}
 	//if (pass.size() % 2 == 1)pass += 'X';
-}
-void norm_ans(string& s2){
+}*/
+/*void norm_ans(string& s2) {
 	for (int i = 0; i < s2.size(); i++) {
 		if (s2[i] == 'X') {
 			if (s2[i - 1] == s2[i + 1]) s2.erase(s2.begin() + i);
 		}
 	}
-}
+}*/
 
 string read(string company) {
 	string ans="";
@@ -496,11 +515,73 @@ int is_user(string user_key) {
 	system("cls");
 	if (inp == 1) { 
 		read_all_file(user_key); 
+		cout << "если хотите запустить поиск, нажмите "<<rr.green("1") << endl;
+		cout << "если хотите скопировать пароль в буфер обмена, нажмите " << rr.yellow("2") <<" а затем введите номер строки с нужным аккаунтом и паролем" << endl;
 		cout << "для выхода в меню нажмите " << rr.red("0") << endl;
-		int exit1; cin >> exit1; system("cls");
+		int exit1; cin >> exit1;
+		if(exit1==0)system("cls");
+		else if(exit1==1){
+			system("cls");
+			string input_f = "";
+			cout << "Введите букву или слово, которое хотите найти" << endl;
+			cin >> input_f;
+			string line;
+			ifstream in("Storage.txt");
+			if (in.is_open())
+			{
+				while (getline(in, line))
+				{
+					string company = ""; string pass = "";
+					for (int i = 0; i < line.find(" "); i++)company += line[i];
+					for (int i = line.find(" ") + 1; i < line.size(); i++)pass += line[i];
+					if (company.find(input_f) != string::npos) {
+						cout << setw(15) << left << company << " " << decryption(pass, user_key) << endl;
+					}
+				}
+			}
+			in.close();
+			cout << "для выхода в меню нажмите " << rr.red("0") << endl;
+			int exit1; cin >> exit1; system("cls");
+		}
+		else {
+			system("cls");
+			int n = 1;
+			string line;
+			ifstream in("Storage.txt");
+			if (in.is_open())
+			{
+				while (getline(in, line))
+				{
+					string company = ""; string pass = "";
+					for (int i = 0; i < line.find(" "); i++)company += line[i];
+					for (int i = line.find(" ") + 1; i < line.size(); i++)pass += line[i];
+					cout << rr.cyan(to_string(n))<<"  "<<setw(15) << left << company << " " << decryption(pass, user_key) << endl;
+					n++;
+				}
+			}
+			in.close();
+			int input_num; cin >> input_num;
+
+			n = 1;
+			string line1;
+			ifstream in1("Storage.txt");
+			if (in1.is_open())
+			{
+				while (getline(in1, line1))
+				{
+					string company = ""; string pass = "";
+					for (int i = 0; i < line1.find(" "); i++)company += line1[i];
+					for (int i = line1.find(" ") + 1; i < line1.size(); i++)pass += line1[i];
+					if (n == input_num) CopyToClipboard(decryption(pass, user_key));
+					//cout << rr.cyan(n) << "  " << setw(15) << left << company << " " << decryption(pass, key) << endl;
+					n++;
+				}
+			}
+			in1.close();
+		}
 	}
 	else if (inp == 2) {
-		cout << "Введите название сайта/приложения" << endl;
+		cout << "Введите название сайта/приложения латиницей" << endl;
 		string company = "";
 		getline(cin, company);
 		if (company == "")getline(cin, company);
@@ -514,6 +595,7 @@ int is_user(string user_key) {
 		system("cls");
 	}
 	else if (inp == 3) {
+		bool ok = true;
 		int worth_pass;
 		long worth_val = 1215752191;
 		int n = count_str_in_file(user_key);
@@ -545,11 +627,12 @@ int is_user(string user_key) {
 		}
 		in.close();
 
-
+		
 		for (int i = 0; i < n; i++) {
 			for (int j = i+1; j < n; j++) {
 				if (list[i].find(list[j]) != std::string::npos ) {
-					cout << "Эти пароли похожи, лучше заменить один из них" << endl<<endl;
+					ok = false;
+					cout << "Эти пароли похожи, лучше заменить один из них:" << endl;
 					
 					string line2;
 					n = 0;
@@ -566,12 +649,18 @@ int is_user(string user_key) {
 					}
 					in2.close();
 
-					cout << "А так же слабейшим паролем является " << list[worth_pass]<<endl;
+					cout <<endl<< "А так же слабейшим паролем является " << list[worth_pass]<<endl;
 					cout << "чтобы продолжить, нажмите любую цифру" << endl;
 					int qq; cin >> qq;
 					system("cls");
 				}
 			}
+		}
+		if (ok) {
+			cout << "Всё в порядке." << endl;
+			cout << "чтобы продолжить, нажмите любую цифру" << endl;
+			int qq; cin >> qq;
+			system("cls");
 		}
 	}
 	else if (inp == 4) {
@@ -590,10 +679,25 @@ int is_user(string user_key) {
 	}
 	return inp;
 }
+void welcome() {
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	int columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	if (columns >= 100) {
+		cout << " __          __  _ _                             _           _  __          ______                   " << endl <<
+			" \\ \\        / / | | |                           | |         | |/ /         |  ____|                  " << endl <<
+			"  \\ \\  /\\  / /__| | | ___ ___  _ __ ___   ___   | |_ ___    | ' / ___ _   _| |__ ___  _ __ __ _  ___ " << endl <<
+			"   \\ \\/  \\/ / _ \\ | |/ __/ _ \\| '_ ` _ \\ / _ \\  | __/ _ \\   |  < / _ \\ | | |  __/ _ \\| '__/ _` |/ _ \\" << endl <<
+			"    \\  /\\  /  __/ | | (_| (_) | | | | | |  __/  | || (_) |  | . \\  __/ |_| | | | (_) | | | (_| |  __/" << endl <<
+			"     \\/  \\/ \\___|_|_|\\___\\___/|_| |_| |_|\\___|   \\__\\___/   |_|\\_\\___|\\__, |_|  \\___/|_|  \\__, |\\___|" << endl <<
+			"                                                                       __/ |               __/ |     " << endl <<
+			"                                                                      |___/               |___/      " << endl;
+	}
+}
 int main() {
 	setlocale(LC_ALL, "Russian");
+	welcome();
 	
-
 	string line;
 	string user = "";
 	ifstream in("Storage.txt");
@@ -605,13 +709,13 @@ int main() {
 	int stop = 1;
 	string user_key = "";
 	if (!user.empty()) {
-		cout << "введите код для входа в приложение(1 слово без русских букв)" << endl;
+		cout << "введите мастер-пароль для входа в приложение(1 слово без русских букв)" << endl;
 		cin >> user_key;
 		//is_user(user_key);
 	}
 	else {
-		cout << "для создвния аккаутна нужно придумать код(1 слово без русских букв). Далее этот же код понадобится для получения доступа к паролям" << endl;
-		cout << "введите код" << endl;
+		cout << "для создания аккаутна нужно придумать Мастер-Пароль(1 слово без русских букв). Далее этот же Мастер-Пароль понадобится для получения доступа к паролям" << endl;
+		cout << "введите мастер-пароль" << endl;
 		cin >> user_key;
 		//is_user(user_key);
 	}
