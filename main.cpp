@@ -687,7 +687,7 @@ string is_user(string user_key) {
 						if (s[i] == all[j]) ans_pass += (j + 1) * pow(36, i);
 				}
 				//cout << list[n] << " " << ans_pass << endl;
-				if (ans_pass < worth_val) worth_pass = n;
+				if (ans_pass < worth_val) { worth_pass = n; worth_val = ans_pass; }
 				if (ans_pass < 1500 || std::find(bad_pass.begin(), bad_pass.end(), list[n]) != bad_pass.end()) cout << list[n] << endl;
 
 				n++;
